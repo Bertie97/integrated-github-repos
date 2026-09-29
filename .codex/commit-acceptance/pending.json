@@ -1,0 +1,52 @@
+{
+  "schema_version": 1,
+  "commit": "pending",
+  "reviewed_at": "2026-09-30T00:29:46+08:00",
+  "items": [
+    {
+      "item": "改了什么",
+      "answer": "当前仓库尚无提交，31 个文件全部未跟踪：新增 PySide6 跨平台桌面客户端、Git 服务层、仓库路径持久化、凭据管理、验收表读写、UI 组件与测试文档；新增 PNG/SVG/ICNS/ICO 图标资产和 macOS/Ubuntu/Windows PyInstaller 打包脚本。普通及暂存 git diff 均为空，因为没有已跟踪或已暂存文件。"
+    },
+    {
+      "item": "为什么改",
+      "answer": "README 将目标描述为本地 GitHub/私有 GitLab 仓库管理客户端：扫描或添加本地仓库、克隆、查看状态/提交/diff、分支/推送/快进拉取、管理 host-scoped HTTP(S) token，并编辑 .codex/commit-acceptance 验收表；docs/feature-registry.md 和 docs/code-relations.md 记录了对应功能与跨模块契约。"
+    },
+    {
+      "item": "如何验证",
+      "answer": "已执行：git status --short --branch、git ls-files --others --exclude-standard、git diff/--cached 的 name-status/stat/check/numstat（确认无提交、无已跟踪/暂存 diff、31 个未跟踪候选）；uv run pytest -q（75 项全部通过，18 credentials、30 git_service、1 repo_store、26 UI）；uv run ruff check .（通过）；uv run python -m compileall -q src tests packaging（通过）；文件类型、尺寸、忽略项和敏感字符串扫描；bash -n 未单独执行，Windows PowerShell 和 Ubuntu/macOS 实际打包未执行。uv run ruff format --check . 未通过：14 个文件需要格式化。未执行真实 GitHub/GitLab 网络认证、真实推送/拉取、GUI 人工视觉验收、Windows/Ubuntu 打包或代码签名公证。"
+    },
+    {
+      "item": "是否涉及删除",
+      "answer": "否。未发现删除状态；应用内删除凭据只删除应用自己管理的 token 文件，测试明确验证外部 token 文件不会被删除。仓库本身没有已有提交可用于比较删除。"
+    },
+    {
+      "item": "是否涉及迁移",
+      "answer": "是，涉及应用配置/远端关系迁移路径，但不是数据库迁移：RepoStore 使用 schema_version=1 保存本地仓库路径；CredentialStore 读取旧记录缺失 email 的兼容格式；initialize_from_local 会在用户确认后替换 origin、必要时创建 init commit 并 push 所有本地分支；分支切换可为 origin/* 建立本地 tracking 分支。上述真实远端迁移流程未做网络端到端验证。"
+    },
+    {
+      "item": "是否涉及配置",
+      "answer": "是。pyproject.toml 配置 Python >=3.10、PySide6/QtAwesome、pytest/ruff/PyInstaller/Pillow 依赖和 CLI 入口；.gitignore 排除缓存、虚拟环境、build/dist、spec 和 egg-info；应用数据目录保存 repositories.json、credential-hosts.json 和 tokens；打包脚本配置各平台 PyInstaller、图标和 macOS bundle identifier。"
+    },
+    {
+      "item": "是否涉及权限",
+      "answer": "是。功能包含 clone、origin 修改、分支切换、commit、push、pull 和初始化远端，UI 设计为逐项确认；Git 操作通过系统 git 和 SSH 或 HTTP(S) 凭据执行。凭据文件尝试使用 0700 目录/0600 文件权限，但没有 OS keychain，外部 token 文件权限由用户负责；HTTP token 传输可被明确勾选放行。真实权限拒绝、OAuth/SSH agent 和私有服务端未验证。"
+    },
+    {
+      "item": "是否涉及数据",
+      "answer": "是。应用读取本地仓库源码、Git 历史、远端元数据、README 和 diff，并将用户选择的仓库绝对路径写入应用数据目录；验收表 JSON 会写回仓库 .codex/commit-acceptance。未发现提交的数据集、日志或运行结果；测试中的 github-secret、private-token 等均为合成夹具，不在生产配置或资产文件中。"
+    },
+    {
+      "item": "是否涉及模型",
+      "answer": "否。未发现模型权重、检查点、推理代码或训练数据；PySide6/QtAwesome/PyInstaller/Pillow 是应用和打包依赖。"
+    },
+    {
+      "item": "是否涉及大文件",
+      "answer": "未发现超过 10 MiB 的候选文件。最大候选为 assets/app-icon.icns 约 1.34 MiB、app-icon-source.png 约 1.24 MiB、app-icon-source-v3.png 约 1.13 MiB；它们是图标源/打包资产，不是构建产物。工作区中的 .venv、.packaging-venv、build、dist、缓存和 egg-info 均被 .gitignore 排除，未列入提交候选。"
+    },
+    {
+      "item": "是否有兼容性风险",
+      "answer": "有。主要风险一是 git_service.configure_origin 和 UI 的远端设置只拒绝空值、换行和以 - 开头的值，没有复用 normalize_remote_url 的 HTTP(S) 用户名/密码校验，因此含 token 的 URL 可能被写入 origin，与 README“token 不写入仓库 URL 或仓库配置”的约定冲突；该路径没有对应拒绝凭据 URL 的测试。二是 ruff format --check 在 14 个文件失败，虽不改变运行语义但会阻塞格式门禁。三是应用声明 Python 3.10+、PySide6<7 和三个平台打包，但 Windows/Ubuntu 构建、Qt 运行时和代码签名仅有脚本或文档证据，未在对应平台验证。四是凭据采用应用私有目录纯文本 token 而非钥匙串，HTTP 明文传输是显式风险。"
+    }
+  ],
+  "notes": "审阅仅执行只读检查、测试和生成本审阅文件；未执行 git add、git commit、git push、git pull、merge、rebase、远端修改或真实远端写操作。由于仓库没有初始提交，无法提供相对 HEAD 的已跟踪 diff；本结论基于 31 个未跟踪候选文件的实际内容。"
+}
