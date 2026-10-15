@@ -55,6 +55,7 @@ PyInstaller 不能可靠地跨操作系统生成原生包，因此三个脚本�
 
 # Ubuntu
 ./packaging/ubuntu/build_app.sh
+./packaging/ubuntu/install_app.sh
 
 # Windows PowerShell
 .\packaging\windows\build_app.ps1
@@ -67,3 +68,5 @@ macOS 脚本优先使用环境变量 `CODESIGN_IDENTITY`，未提供时采用 ad
 ## 验收表格式
 
 每个 commit 的表格位于 `.codex/commit-acceptance/<完整 SHA>.json`。文件可由 Codex 的 commit 审核流程生成，也可在本应用的 commit 详情页编辑。应用不会自动提交该文件。
+
+Ubuntu 安装脚本将应用复制到 `~/.local/opt/integrated-github-repos` 并注册应用菜单入口。需要 `apt-get`、`dpkg-deb` 和可用的 Ubuntu 软件源；脚本下载 `libxcb-cursor0` 并将运行库放入 PyInstaller 的 `_internal` 目录，无需 sudo。构建前请安装 `python3-venv`。
