@@ -2,6 +2,15 @@
 
 一个基于本地 Python、面向 GitHub 与私有 GitLab 仓库的跨平台桌面客户端。应用调用系统 `git`；token 不写入仓库 URL 或仓库配置。
 
+## uv 启动
+
+```bash
+uv run --locked integrated-github-repos
+uv run --locked --extra dev python -m pytest -q
+```
+
+`.python-version` 选择 Python 3.13.13；复用既有 `pyproject.toml` 与 `uv.lock`，需要系统 Git。原有 pip 启动方式仍可使用。
+
 ## 当前功能
 
 - 添加本地仓库、从指定目录递归扫描仓库、克隆网络仓库。
